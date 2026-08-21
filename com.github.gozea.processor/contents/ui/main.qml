@@ -6,6 +6,7 @@ import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.plasma.plasmoid
+import org.kde.plasma.plasma5support as P5Support
 
 import org.kde.kirigami as Kirigami
 
@@ -14,14 +15,14 @@ PlasmoidItem {
 
     property var presets: []
 
+    //useful to pass the executable to presetView and processesView
+    property alias executable: executable
+
     function savePresets() {
         plasmoid.configuration.presets = JSON.stringify(presets)
     }
-    
 
-    preferredRepresentation: compactRepresentation
-
-    Component.onCompleted: {
+    function refreshPresets() {
         try {
             presets = JSON.parse(plasmoid.configuration.presets)
             console.log("Loaded presets:", JSON.stringify(presets))
@@ -31,12 +32,62 @@ PlasmoidItem {
         }
     }
 
-    fullRepresentation: PlasmaExtras.Representation {
-        Text {
-            id: label
-            text: "Processor"
+    Connections {
+        target: plasmoid.configuration
+
+        function onPresetsChanged() {
+            console.log("Configuration presets changed")
+            refreshPresets()
+        }
+    }
+    
+    preferredRepresentation: compactRepresentation
+
+    Component.onCompleted: {
+        refreshPresets()
+    }
+
+
+    P5Support.DataSource {
+        id: executable
+
+        engine: "executable"
+        interval: 0
+        onNewData: function(sourceName, data) {
+            console.log(
+                "stdout:",
+                data["stdout"]
+            )
+            console.log(
+                "stderr:",
+                data["stderr"]
+            )
+            console.log(
+                "exit code:",
+                data["exit code"]
+            )
+            console.log(
+                "exit status:",
+                data["exit status"]
+            )
+
+            disconnectSource(sourceName);
         }
 
+        function start(command, title) {
+            connectSource(
+                `sh -c 'echo $$ > /tmp/${title}; exec ${command} ; rm -f /tmp/${title}'`
+            )
+        }
+
+        function stop(title) {
+            executable.connectSource(
+                `sh -c 'cat /tmp/${title} | xargs kill 2>/dev/null; rm -f /tmp/${title}'`
+            )
+        }
+    }
+
+    fullRepresentation: PlasmaExtras.Representation {
         Layout.minimumWidth: label.implicitWidth
         Layout.minimumHeight: label.implicitHeight
 

@@ -8,11 +8,7 @@
     <group name="General">
 
         <entry name="presets" type="String">
-            <default>[{"name": "John", "surname": "Snake"}]</default>
-        </entry>
-
-        <entry name="presetName" type="String">
-            <default>Jack</default>
+            <default>[{"title": "John", "command": "llama-serve", "flags": {"models-preset": "model.ini"}}]</default>
         </entry>
 
     </group>

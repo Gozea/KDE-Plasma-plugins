@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.extras as PlasmaExtras
+import org.kde.plasma.plasmoid
 
 import org.kde.kirigami as Kirigami
 
@@ -11,19 +12,6 @@ Item {
     id: view
 
     property var presets: root.presets
-
-    // signal presetDeleted(int index)
-
-    // function deletePreset(index) {
-    //     presetDeleted(index)
-    // }
-    //
-    // onPresetDeleted: function(index) {
-    //     root.presets.splice(index, 1)
-    //     root.presets = root.presets.slice()
-    //
-    //     root.savePresets()
-    // }
     
     function deletePreset(index) {
         root.presets.splice(index, 1)
@@ -48,12 +36,10 @@ Item {
 
                 ListView {
                     id: listView
-
                     anchors.fill: parent
+                    keyNavigationEnabled: true
 
                     model: view.presets
-
-                    keyNavigationEnabled: true
 
                     delegate: PlasmaComponents.ItemDelegate {
                         width: listView.width
@@ -68,7 +54,7 @@ Item {
                                 PlasmaComponents.Label {
                                     Layout.fillWidth: true
 
-                                    text: modelData.name
+                                    text: modelData.title
 
                                     textFormat: Text.PlainText
                                     wrapMode: Text.WordWrap
@@ -78,8 +64,9 @@ Item {
 
                                 PlasmaComponents.Label {
                                     Layout.fillWidth: true
-
-                                    text: modelData.command
+                                    text: [modelData.command,
+                                            Object.entries(modelData.flags).map(([key, value]) => {return `--${key} ${value}`})
+                                        ].filter(function (s) { return s; }).join(" ")
 
                                     textFormat: Text.PlainText
                                     elide: Text.ElideRight
@@ -88,26 +75,27 @@ Item {
                                 }
                             }
 
+
                             PlasmaComponents.ToolButton {
-                                icon.name: modelData.starred
-                                    ? "starred-symbolic"
-                                    : "non-starred-symbolic"
-
+                                icon.name: "media-playback-start"
                                 display: PlasmaComponents.AbstractButton.IconOnly
+                                text: "Start a Process"
 
-                                text: "Details"
-
-                                onClicked: {
-                                    console.log(
-                                        "Selected preset:",
-                                        modelData.name
-                                    )
-                                }
+                                onClicked: root.executable.start(modelData.command, modelData.title)
 
                                 PlasmaComponents.ToolTip.text: text
                                 PlasmaComponents.ToolTip.visible: hovered
-                                PlasmaComponents.ToolTip.delay:
-                                    Kirigami.Units.toolTipDelay
+                            }
+
+                            PlasmaComponents.ToolButton {
+                                icon.name: "media-playback-stop"
+                                display: PlasmaComponents.AbstractButton.IconOnly
+                                text: "Stop a Process"
+
+                                onClicked: root.executable.stop(modelData.title)
+
+                                PlasmaComponents.ToolTip.text: text
+                                PlasmaComponents.ToolTip.visible: hovered
                             }
 
                             PlasmaComponents.ToolButton {
@@ -140,9 +128,9 @@ Item {
                 icon.name: "list-add"
                 text: "Create preset"
 
-                //onTriggered: {
-                //    view.presetAdded()
-                //}
+                onTriggered: {
+                    Plasmoid.internalAction("configure").trigger()
+                }
             }
         }
     }
