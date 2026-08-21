@@ -8,9 +8,9 @@
         ],
         "Category": "System Information",
         "Description": "A widget to take over the world!",
-        "Icon": "battery",
+        "Icon": "bluefish",
         "Id": "com.github.gozea.processor",
-        "Name": "Hello World",
+        "Name": "Processor",
         "Version": "1",
         "Website": "https://example.com/user/plasmoid-helloworldplugin",
         "BugReportUrl": "https://example.com/user/plasmoid-helloworldplugin/bugs"

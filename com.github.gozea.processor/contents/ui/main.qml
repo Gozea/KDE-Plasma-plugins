@@ -14,6 +14,7 @@ PlasmoidItem {
     id: root
 
     property var presets: []
+    property var running: []
 
     //useful to pass the executable to presetView and processesView
     property alias executable: executable
@@ -54,10 +55,7 @@ PlasmoidItem {
         engine: "executable"
         interval: 0
         onNewData: function(sourceName, data) {
-            console.log(
-                "stdout:",
-                data["stdout"]
-            )
+            console.log(data["stdout"])
             console.log(
                 "stderr:",
                 data["stderr"]
@@ -66,24 +64,35 @@ PlasmoidItem {
                 "exit code:",
                 data["exit code"]
             )
-            console.log(
-                "exit status:",
-                data["exit status"]
-            )
-
+            if (data["exit code"] === 10) {
+                var stdout = data["stdout"].split(";")
+                var newProcess = {
+                    "pid": stdout[0],
+                    "title": stdout[1],
+                    "command": stdout[2]
+                }
+                root.running = root.running.concat([newProcess])
+                console.log(root.running.filter(entry => entry["title"] == stdout[1]).length)
+            }
+            
             disconnectSource(sourceName);
         }
 
         function start(command, title) {
+            // lauches process in background and write its stdout and stderr in /tmp -> write the pid in stdout in the meanwhile (& is important ; $! means most recent pid)
             connectSource(
-                `sh -c 'echo $$ > /tmp/${title}; exec ${command} ; rm -f /tmp/${title}'`
+                `${command} > /tmp/$$ 2>&1 & echo "$!;${title};${command}"; exit 10`
             )
+            // connectSource('echo "world"')
         }
 
         function stop(title) {
+            var titlePids = root.running.filter(entry => entry["title"] === title).map(entry => entry["pid"])
             executable.connectSource(
-                `sh -c 'cat /tmp/${title} | xargs kill 2>/dev/null; rm -f /tmp/${title}'`
+                `kill ${titlePids.join(" ")}`
             )
+            //update running processes list
+            root.running = root.running.filter(entry => entry["title"] !== title)
         }
     }
 
@@ -129,12 +138,12 @@ PlasmoidItem {
                     Layout.fillWidth: true
 
                     TabButton {
-                        text: "Processes"
+                        text: "Launcher"
                         Layout.fillWidth: true
                     }
 
                     TabButton {
-                        text: "Presets"
+                        text: "Actives"
                         Layout.fillWidth: true
                     }
                 }
@@ -145,9 +154,9 @@ PlasmoidItem {
 
                     currentIndex: tabBar.currentIndex
 
-                    ProcessesView {}
+                    LauncherView {}
 
-                    PresetsView {}
+                    ActivesView {}
 
                 }
             }

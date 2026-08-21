@@ -4,7 +4,7 @@ import org.kde.plasma.configuration
 ConfigModel{
     ConfigCategory{
         name: "Presets"
-        icon: "radio"
+        icon: "utilities-terminal"
         source: "config/configPresets.qml"
     }
 }
