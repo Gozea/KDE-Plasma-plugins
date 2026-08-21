@@ -64,6 +64,7 @@ PlasmoidItem {
                 "exit code:",
                 data["exit code"]
             )
+            //add running process if persists
             if (data["exit code"] === 10) {
                 var stdout = data["stdout"].split(";")
                 var newProcess = {
@@ -74,6 +75,7 @@ PlasmoidItem {
                 root.running = root.running.concat([newProcess])
                 console.log(root.running.filter(entry => entry["title"] == stdout[1]).length)
             }
+            //TODO remove running that ended by themselves (exit code 0 or 1)
             
             disconnectSource(sourceName);
         }
@@ -81,9 +83,8 @@ PlasmoidItem {
         function start(command, title) {
             // lauches process in background and write its stdout and stderr in /tmp -> write the pid in stdout in the meanwhile (& is important ; $! means most recent pid)
             connectSource(
-                `${command} > /tmp/$$ 2>&1 & echo "$!;${title};${command}"; exit 10`
+                `${command} > /tmp/$$ 2>&1 & sleep 0.1 && kill -0 $! && echo "$!;${title};${command}" && exit 10`
             )
-            // connectSource('echo "world"')
         }
 
         function stop(title) {
