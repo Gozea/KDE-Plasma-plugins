@@ -95,6 +95,13 @@ PlasmoidItem {
             //update running processes list
             root.running = root.running.filter(entry => entry["title"] !== title)
         }
+
+        function killPid(pid) {
+            executable.connectSource(`kill ${pid}`)
+            //update running processes list
+            root.running = root.running.filter(entry => entry["pid"] !== pid)
+        }
+
     }
 
     fullRepresentation: PlasmaExtras.Representation {

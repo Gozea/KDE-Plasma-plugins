@@ -66,7 +66,7 @@ Item {
                                 PlasmaComponents.Label {
                                     Layout.fillWidth: true
                                     text: [modelData.command,
-                                            Object.entries(modelData.flags).map(([key, value]) => {return `--${key} ${value}`})
+                                            Object.entries(modelData.flags).map(([key, value]) => {return `${key} ${value}`})
                                         ].filter(function (s) { return s; }).join(" ")
 
                                     textFormat: Text.PlainText
@@ -101,7 +101,7 @@ Item {
                             PlasmaComponents.ToolButton {
                                 icon.name: "media-playback-stop"
                                 display: PlasmaComponents.AbstractButton.IconOnly
-                                text: "Stop a Process"
+                                text: "Stop all Processes"
                                 enabled: view.running.filter(entry => entry["title"] === modelData.title).length !== 0
 
                                 onClicked: root.executable.stop(modelData.title)
