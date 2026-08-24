@@ -8,7 +8,7 @@ import org.kde.plasma.plasmoid
 
 import org.kde.kirigami as Kirigami
 
-Item {
+PlasmaExtras.ExpandableListItem {
     id: view
 
     property var presets: root.presets
@@ -85,7 +85,7 @@ Item {
                                 onClicked: {
                                     root.executable.start(
                                     [modelData.command,
-                                        Object.entries(modelData.flags).map(([key, value]) => {return `--${key} ${value}`})
+                                        Object.entries(modelData.flags).map(([key, value]) => {return `${key} ${value}`})
                                         ].filter(function (s) { return s; }).join(" "),
                                     modelData.title)
                                 }
@@ -145,6 +145,7 @@ Item {
                 }
             }
         }
+
     }
 }
 
