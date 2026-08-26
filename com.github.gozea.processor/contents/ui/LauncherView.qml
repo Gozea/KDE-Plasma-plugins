@@ -66,8 +66,8 @@ PlasmaExtras.ExpandableListItem {
                                 PlasmaComponents.Label {
                                     Layout.fillWidth: true
                                     text: [modelData.command,
-                                            Object.entries(modelData.options).map(([key, value]) => {return `${key} ${value}`})
-                                        ].filter(function (s) { return s; }).join(" ")
+                                            modelData.options.map((entry) => {return `${entry.key} ${entry.value}`}).join(" ")
+                                        ].join(" ")
 
                                     textFormat: Text.PlainText
                                     elide: Text.ElideRight
@@ -84,9 +84,9 @@ PlasmaExtras.ExpandableListItem {
 
                                 onClicked: {
                                     root.executable.start(
-                                    [modelData.command,
-                                        Object.entries(modelData.options).map(([key, value]) => {return `${key} ${value}`})
-                                        ].filter(function (s) { return s; }).join(" "),
+                                        [modelData.command,
+                                            modelData.options.map((entry) => {return `${entry.key} ${entry.value}`}).join(" ")
+                                        ].join(" "),
                                     modelData.title)
                                 }
 

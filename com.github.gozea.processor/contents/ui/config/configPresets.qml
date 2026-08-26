@@ -72,8 +72,8 @@ KCM.ScrollViewKCM {
                     QQC2.Label {
                         Layout.fillWidth: true
                         text: [modelData.command,
-                                Object.entries(modelData.options).map(([key, value]) => {return `${key} ${value}`})
-                            ].filter(function (s) { return s; }).join(" ")
+                                modelData.options.map((entry) => {return `${entry.key} ${entry.value}`}).join(" ")
+                            ].join(" ")
 
                         textFormat: Text.PlainText
                         elide: Text.ElideRight
