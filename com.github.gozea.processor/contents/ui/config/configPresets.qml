@@ -28,42 +28,82 @@ KCM.ScrollViewKCM {
         console.log("preset count:", presets.length)
     }
 
+    function deletePreset(row) {
+        var newPresets = presets.slice()
+        newPresets.splice(row, 1)
+
+        presets = newPresets
+
+        var newJson = JSON.stringify(newPresets)
+        cfg_presets = newJson
+
+        console.log("presets:", newPresets.length)
+        console.log("cfg_presets:", newJson)
+    }
+
     view: ListView {
         id: presetList
 
         model: configPresets.presets
 
         delegate: Kirigami.SwipeListItem {
-        //delegate: PlasmaComponents.ItemDelegate {
             width: presetList.width
 
-
-            contentItem: ColumnLayout {
-                width: parent.width
+            contentItem: RowLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
                 spacing: 0
 
-                QQC2.Label {
-                    Layout.fillWidth: true
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 0
 
-                    text: modelData.title
+                    QQC2.Label {
+                        Layout.fillWidth: true
 
-                    textFormat: Text.PlainText
-                    wrapMode: Text.WordWrap
-                    maximumLineCount: 2
-                    elide: Text.ElideRight
+                        text: modelData.title
+
+                        textFormat: Text.PlainText
+                        wrapMode: Text.WordWrap
+                        maximumLineCount: 2
+                        elide: Text.ElideRight
+                    }
+
+                    QQC2.Label {
+                        Layout.fillWidth: true
+                        text: [modelData.command,
+                                Object.entries(modelData.options).map(([key, value]) => {return `${key} ${value}`})
+                            ].filter(function (s) { return s; }).join(" ")
+
+                        textFormat: Text.PlainText
+                        elide: Text.ElideRight
+                        wrapMode: Text.WordWrap
+
+                        opacity: 0.7
+                    }
                 }
 
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    text: [modelData.command,
-                            Object.entries(modelData.options).map(([key, value]) => {return `${key} ${value}`})
-                        ].filter(function (s) { return s; }).join(" ")
+                PlasmaComponents.ToolButton {
+                    icon.name: "cell_edit"
+                    display: PlasmaComponents.AbstractButton.IconOnly
+                    text: "Edit"
 
-                    textFormat: Text.PlainText
-                    elide: Text.ElideRight
-                    wrapMode: Text.WordWrap
+                    onClicked: {
+                    }
 
-                    opacity: 0.7
+                    PlasmaComponents.ToolTip.text: text
+                    PlasmaComponents.ToolTip.visible: hovered
+                }
+
+                PlasmaComponents.ToolButton {
+                    icon.name: "edit-delete"
+                    display: PlasmaComponents.AbstractButton.IconOnly
+                    text: "Delete"
+
+                    onClicked: configPresets.deletePreset(index)
+
+                    PlasmaComponents.ToolTip.text: text
+                    PlasmaComponents.ToolTip.visible: hovered
                 }
             }
         }
@@ -82,53 +122,53 @@ KCM.ScrollViewKCM {
     }
 
     footer: QQC2.Button {
-        text: "Add preset"
-        icon.name: "list-add"
+    text: "Add preset"
+    icon.name: "list-add"
 
-        onClicked: {
-            updatePopup.visible= true
-        }
+    onClicked: {
+        updatePopup.visible= true
+    }
 
-        ListModel{
-            id: fieldsModel
-        }
+    ListModel{
+        id: fieldsModel
+    }
 
-        // Dialog to add new preset commands
-        Kirigami.Dialog {
-            id: "updatePopup"
-            title: "Add preset command"
-            visible: false
+    // Dialog to add new preset commands
+    Kirigami.Dialog {
+        id: "updatePopup"
+        title: "Add preset command"
+        visible: false
 
-            padding: Kirigami.Units.largeSpacing
-            standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
+        padding: Kirigami.Units.largeSpacing
+        standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
 
-            //push new preset in config
-            onAccepted:{
-                //checking flags first
-                var options = {}
-                for (var i = 0 ; i < fieldsModel.count; i++) {
-                    var field = fieldsModel.get(i)
-                    if (field.key.trim() !== "" && field.value.trim() !== "") {
-                        options[field.key] = field.value
-                    }
+        //push new preset in config
+        onAccepted:{
+            //checking flags first
+            var options = {}
+            for (var i = 0 ; i < fieldsModel.count; i++) {
+                var field = fieldsModel.get(i)
+                if (field.key.trim() !== "" && field.value.trim() !== "") {
+                    options[field.key] = field.value
                 }
-
-                //insert into config
-                var newEntry = {
-                    "title": commandTitle.text,
-                    "command": command.text,
-                    "options": options
-                }
-                presets = presets.concat([newEntry])
-                cfg_presets = JSON.stringify(presets) // this should not be saved in config at that point !!!!!!
-
-                //clear values
-                fieldsModel.clear()
-                commandTitle.clear()
-                command.clear()
-
-                root.refreshPresets()
             }
+
+            //insert into config
+            var newEntry = {
+                "title": commandTitle.text,
+                "command": command.text,
+                "options": options
+            }
+            presets = presets.concat([newEntry])
+            cfg_presets = JSON.stringify(presets) // this should not be saved in config at that point ??
+
+            //clear values
+            fieldsModel.clear()
+            commandTitle.clear()
+            command.clear()
+
+            root.refreshPresets()
+        }
 
             ColumnLayout {
                 Kirigami.FormLayout {
@@ -171,8 +211,6 @@ KCM.ScrollViewKCM {
 
                                 fieldsModel.setProperty(index, "input", inputTypes[next])
                             }
-
-
                         }
 
                         QQC2.TextField {
