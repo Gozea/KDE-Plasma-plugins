@@ -144,13 +144,26 @@ KCM.ScrollViewKCM {
 
         //push new preset in config
         onAccepted:{
-            //checking flags first
-            var options = {}
+            // helper function to extract altKeys and altValues
+            function extractListValues(qqmlList) {
+                var res = []
+                for (var i = 0 ; i < qqmlList.count ; i++) {
+                    res.push(qqmlList.get(i)["value"])
+                }
+                return res
+            }
+
+            // create options
+            var options = []
             for (var i = 0 ; i < fieldsModel.count; i++) {
                 var field = fieldsModel.get(i)
-                if (field.key.trim() !== "" && field.value.trim() !== "") {
-                    options[field.key] = field.value
-                }
+                options.push({
+                    "input": field.input, // we'll rotate the array onClick -> current input is position 0
+                    "key": field.key,
+                    "value": field.value,
+                    "altKeys": extractListValues(field.altKeys),
+                    "altValues": extractListValues(field.altValues)
+                })
             }
 
             //insert into config
@@ -161,6 +174,7 @@ KCM.ScrollViewKCM {
             }
             presets = presets.concat([newEntry])
             cfg_presets = JSON.stringify(presets) // this should not be saved in config at that point ??
+            console.log(cfg_presets)
 
             //clear values
             fieldsModel.clear()
@@ -198,6 +212,9 @@ KCM.ScrollViewKCM {
                     model: fieldsModel
 
                     delegate: RowLayout {
+                        property int fieldIndex: index
+                        property var isKeyPair: false
+
                         Layout.fillWidth: true
                         spacing: Kirigami.Units.smallSpacing
 
@@ -213,21 +230,83 @@ KCM.ScrollViewKCM {
                             }
                         }
 
-                        QQC2.TextField {
-                            Layout.fillWidth: true
-                            placeholderText: "Parameter"
+                        ColumnLayout {
+                            QQC2.TextField {
+                                Layout.fillWidth: true
+                                placeholderText: "Parameter"
 
-                            onTextEdited: {
-                                fieldsModel.setProperty(index, "key", text)
+                                onTextEdited: {
+                                    fieldsModel.setProperty(index, "key", text)
+                                }
+                            }
+
+                            Repeater {
+                                model: fieldsModel.get(index).altKeys
+
+                                delegate: ColumnLayout {
+                                    QQC2.TextField {
+                                        Layout.fillWidth: true
+                                        placeholderText: "Alternative Key"
+
+                                        onTextEdited: {
+                                            console.log(fieldIndex)
+                                            fieldsModel.get(fieldIndex).altKeys.setProperty(index, "value", text)
+                                        }
+                                    }
+                                }
                             }
                         }
 
-                        QQC2.TextField {
-                            Layout.fillWidth: true
-                            placeholderText: "Value"
+                        ColumnLayout {
+                            QQC2.TextField {
+                                Layout.fillWidth: true
+                                placeholderText: "Value"
+                                visible: isKeyPair
 
-                            onTextEdited: {
-                                fieldsModel.setProperty(index, "value", text)
+                                onTextEdited: {
+                                    fieldsModel.setProperty(index, "value", text)
+                                }
+                            }
+
+                            Repeater {
+                                model: fieldsModel.get(index).altValues
+
+                                delegate: ColumnLayout {
+                                    QQC2.TextField {
+                                        Layout.fillWidth: true
+                                        placeholderText: "Alternative Values"
+
+                                        onTextEdited: {
+                                            fieldsModel.get(fieldIndex).altValues.setProperty(index, "value", text)
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+
+                        QQC2.Button {
+                            icon.name: "dialog-xml-editor"
+                            display: QQC2.AbstractButton.IconOnly
+                            onClicked: {
+                                isKeyPair = !isKeyPair
+                                fieldsModel.get(index).altKeys.clear()
+                                fieldsModel.get(index).altValues.clear()
+                            }
+                        }
+
+                        QQC2.Button {
+                            icon.name: "list-add"
+                            display: QQC2.AbstractButton.IconOnly
+
+                            visible: input == "choices"
+                            onClicked: {
+                                var currentField = fieldsModel.get(index)
+                                if (!isKeyPair) {
+                                    currentField.altKeys.append({value: ""})
+                                } else {
+                                    currentField.altValues.append({value: ""})
+                                }
                             }
                         }
 
@@ -236,6 +315,7 @@ KCM.ScrollViewKCM {
                             display: QQC2.AbstractButton.IconOnly
                             onClicked: fieldsModel.remove(index)
                         }
+
                     }
                 }
 
@@ -246,9 +326,7 @@ KCM.ScrollViewKCM {
                     // initialize empty flag fields
                     onClicked: {
                         fieldsModel.append({
-                            "type": "solo",
                             "input": "fixed", // we'll rotate the array onClick -> current input is position 0
-                            "flag": "", // can be "", "-", "--"
                             "key": "",
                             "value": "",
                             "altKeys": [],
@@ -256,11 +334,9 @@ KCM.ScrollViewKCM {
                         })
                     }
                 }
-
             }
         }
     }
-
 
 }
 
