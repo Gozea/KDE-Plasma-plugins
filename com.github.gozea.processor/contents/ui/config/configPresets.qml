@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 
+import org.kde.plasma.components as PlasmaComponents
 import org.kde.kcmutils as KCM
 import org.kde.kirigami as Kirigami
 
@@ -33,10 +34,37 @@ KCM.ScrollViewKCM {
         model: configPresets.presets
 
         delegate: Kirigami.SwipeListItem {
+        //delegate: PlasmaComponents.ItemDelegate {
             width: presetList.width
 
-            QQC2.Label {
-                text: modelData.title
+
+            contentItem: ColumnLayout {
+                width: parent.width
+                spacing: 0
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+
+                    text: modelData.title
+
+                    textFormat: Text.PlainText
+                    wrapMode: Text.WordWrap
+                    maximumLineCount: 2
+                    elide: Text.ElideRight
+                }
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    text: [modelData.command,
+                            Object.entries(modelData.options).map(([key, value]) => {return `${key} ${value}`})
+                        ].filter(function (s) { return s; }).join(" ")
+
+                    textFormat: Text.PlainText
+                    elide: Text.ElideRight
+                    wrapMode: Text.WordWrap
+
+                    opacity: 0.7
+                }
             }
         }
 
@@ -77,11 +105,11 @@ KCM.ScrollViewKCM {
             //push new preset in config
             onAccepted:{
                 //checking flags first
-                var flags = {}
+                var options = {}
                 for (var i = 0 ; i < fieldsModel.count; i++) {
                     var field = fieldsModel.get(i)
-                    if (field.parameter.trim() !== "" && field.value.trim() !== "") {
-                        flags[field.parameter] = field.value
+                    if (field.key.trim() !== "" && field.value.trim() !== "") {
+                        options[field.key] = field.value
                     }
                 }
 
@@ -89,7 +117,7 @@ KCM.ScrollViewKCM {
                 var newEntry = {
                     "title": commandTitle.text,
                     "command": command.text,
-                    "flags": flags
+                    "options": options
                 }
                 presets = presets.concat([newEntry])
                 cfg_presets = JSON.stringify(presets) // this should not be saved in config at that point !!!!!!
@@ -133,12 +161,26 @@ KCM.ScrollViewKCM {
                         Layout.fillWidth: true
                         spacing: Kirigami.Units.smallSpacing
 
+                        QQC2.Button {
+                            text: input.charAt(0).toUpperCase() + input.slice(1) // Capitalized
+                            property var inputTypes: ["fixed", "typable", "choices"]
+
+                            onClicked: {
+                                var currentTypeIndex = inputTypes.indexOf(input)
+                                var next = (currentTypeIndex + 1) % inputTypes.length
+
+                                fieldsModel.setProperty(index, "input", inputTypes[next])
+                            }
+
+
+                        }
+
                         QQC2.TextField {
                             Layout.fillWidth: true
                             placeholderText: "Parameter"
 
                             onTextEdited: {
-                                fieldsModel.setProperty(index, "parameter", text)
+                                fieldsModel.setProperty(index, "key", text)
                             }
                         }
 
@@ -166,8 +208,13 @@ KCM.ScrollViewKCM {
                     // initialize empty flag fields
                     onClicked: {
                         fieldsModel.append({
-                            "parameter": "",
-                            "value": ""
+                            "type": "solo",
+                            "input": "fixed", // we'll rotate the array onClick -> current input is position 0
+                            "flag": "", // can be "", "-", "--"
+                            "key": "",
+                            "value": "",
+                            "altKeys": [],
+                            "altValues": []
                         })
                     }
                 }
