@@ -288,9 +288,6 @@ ListView {
                                                         }
                                                     }
 
-                                                    PlasmaComponents.Label {
-                                                        text: customCommand.get(index).value
-                                                    }
                                                 }
                                             }
 
