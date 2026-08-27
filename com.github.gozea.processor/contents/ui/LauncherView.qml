@@ -154,7 +154,7 @@ ListView {
                                     //initizalize the custom command
                                     Component.onCompleted: {
                                         for (const item of modelData.options) {
-                                            append({"key": item.key, "value": item.value})
+                                            append({"enabled": true, "key": item.key, "value": item.value})
                                         }
                                     }
                                 }
@@ -181,7 +181,10 @@ ListView {
 
                                         PlasmaComponents.CheckBox {
                                             checked: true
-                                            onClicked: disabled = !disabled
+                                            onClicked: {
+                                                disabled = !disabled
+                                                customCommand.setProperty(index, "enabled", !disabled)
+                                            }
                                         }
 
                                         Loader {
@@ -303,8 +306,10 @@ ListView {
                                     function extractListValues(qqmlList) {
                                         var res = []
                                         for (var i = 0 ; i < qqmlList.count ; i++) {
-                                            res.push(qqmlList.get(i)["key"])
-                                            res.push(qqmlList.get(i)["value"])
+                                            if (qqmlList.get(i)["enabled"]) {
+                                                res.push(qqmlList.get(i)["key"])
+                                                res.push(qqmlList.get(i)["value"])
+                                            }
                                         }
                                         return res
                                     }
