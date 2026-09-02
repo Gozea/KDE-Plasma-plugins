@@ -6,6 +6,7 @@ import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.plasma.plasmoid
+
 import org.kde.plasma.plasma5support as P5Support
 
 import org.kde.kirigami as Kirigami
@@ -65,6 +66,7 @@ PlasmoidItem {
                 "exit code:",
                 data["exit code"]
             )
+
             //add running process if persists
             if (data["exit code"] === 10) {
                 var stdout = data["stdout"].split(";")
@@ -73,8 +75,13 @@ PlasmoidItem {
                     "title": stdout[1],
                     "command": stdout[2]
                 }
+                sendNotification(stdout[1], stdout[2], "dialog-ok.svg")
                 root.running = root.running.concat([newProcess])
-                console.log(root.running.filter(entry => entry["title"] == stdout[1]).length)
+            }
+
+            // error
+            if (data["exit code"] === 1) {
+                sendNotification("Process didn't persist or failed", data["stderr"], "dialog-warning.svg")
             }
 
             // if readStd successful
@@ -110,6 +117,10 @@ PlasmoidItem {
 
         function readStd(pid) {
             executable.connectSource(`cat /tmp/${pid} && exit 20`)
+        }
+
+        function sendNotification(title, subtitle, icon) {
+            executable.connectSource(`notify-send --icon ${icon} "${title}" "${subtitle}"`)
         }
 
     }
