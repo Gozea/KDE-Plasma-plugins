@@ -15,6 +15,7 @@ PlasmoidItem {
 
     property var presets: []
     property var running: []
+    property var readProcess: ""
 
     //useful to pass the executable to presetView and processesView
     property alias executable: executable
@@ -75,6 +76,11 @@ PlasmoidItem {
                 root.running = root.running.concat([newProcess])
                 console.log(root.running.filter(entry => entry["title"] == stdout[1]).length)
             }
+
+            // if readStd successful
+            if (data["exit code"] === 20) {
+                root.readProcess = data["stdout"]
+            }
             //TODO remove running that ended by themselves (exit code 0 or 1)
             
             disconnectSource(sourceName);
@@ -83,7 +89,7 @@ PlasmoidItem {
         function start(command, title) {
             // lauches process in background and write its stdout and stderr in /tmp -> write the pid in stdout in the meanwhile (& is important ; $! means most recent pid)
             connectSource(
-                `${command} > /tmp/$$ 2>&1 & sleep 0.1 && kill -0 $! && echo "$!;${title};${command}" && exit 10`
+                `${command} > /tmp/$(($$+1)) 2>&1 & sleep 0.1 && kill -0 $! && echo "$!;${title};${command}" && exit 10`
             )
         }
 
@@ -100,6 +106,10 @@ PlasmoidItem {
             executable.connectSource(`kill ${pid}`)
             //update running processes list
             root.running = root.running.filter(entry => entry["pid"] !== pid)
+        }
+
+        function readStd(pid) {
+            executable.connectSource(`cat /tmp/${pid} && exit 20`)
         }
 
     }

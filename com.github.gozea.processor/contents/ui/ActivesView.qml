@@ -10,9 +10,11 @@ Item {
     id: view
 
     property var running: root.running
+    property int processChecked: -1
 
     ColumnLayout {
         anchors.fill: parent
+        visible: processChecked === -1
 
         Item {
             Layout.fillWidth: true
@@ -27,6 +29,10 @@ Item {
 
                 delegate: PlasmaComponents.ItemDelegate {
                     width: listView.width
+
+                    onClicked: {
+                        view.processChecked = index
+                    }
 
                     contentItem: RowLayout {
                         spacing: Kirigami.Units.smallSpacing
@@ -85,5 +91,51 @@ Item {
             text: "No active command"
         }
     }
+
+
+    ColumnLayout {
+        anchors.fill: parent
+        visible: processChecked !== -1
+
+        // runs once
+        Connections {
+            target: view
+
+            function onProcessCheckedChanged() {
+                if (processChecked !== -1) {
+                    root.executable.readStd(root.running[processChecked].pid)
+                }
+            }
+        }
+
+        // then repeat
+        Timer {
+            interval: 3000
+            running: processChecked !== -1
+            repeat: true
+
+            onTriggered: {
+                root.executable.readStd(root.running[processChecked].pid)
+            }
+        }
+
+        PlasmaComponents.ScrollView {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            PlasmaComponents.Label {
+                id: processContent
+
+                Layout.fillWidth: true
+
+                text: root.readProcess
+
+                textFormat: Text.PlainText
+                wrapMode: Text.WordWrap
+                elide: Text.ElideRight
+            }
+        }
+    }
+
 }
 
