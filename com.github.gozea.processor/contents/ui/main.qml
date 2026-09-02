@@ -157,12 +157,12 @@ PlasmoidItem {
 
                     TabButton {
                         text: "Launcher"
-                        Layout.fillWidth: true
+                        width: tabBar.width/2
                     }
 
                     TabButton {
                         text: "Actives"
-                        Layout.fillWidth: true
+                        width: tabBar.width/2
                     }
                 }
 
