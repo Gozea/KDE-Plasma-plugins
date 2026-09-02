@@ -94,6 +94,8 @@ Item {
 
 
     ColumnLayout {
+        id: processView
+
         anchors.fill: parent
         visible: processChecked !== -1
 
@@ -117,6 +119,59 @@ Item {
             onTriggered: {
                 root.executable.readStd(root.running[processChecked].pid)
             }
+        }
+
+        // Clicked view
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            spacing: 5
+
+            PlasmaComponents.ToolButton {
+                icon.name: "draw-arrow-back"
+                display: PlasmaComponents.AbstractButton.IconOnly
+                text: "Go back to active processes list"
+
+                onClicked: processChecked = -1
+
+                PlasmaComponents.ToolTip.text: text
+                PlasmaComponents.ToolTip.visible: hovered
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+
+                PlasmaComponents.Label {
+                    text: root.running[processChecked].title
+                    textFormat: Text.PlainText
+                    wrapMode: Text.WordWrap
+                    elide: Text.ElideRight
+                }
+
+                PlasmaComponents.Label {
+                    text: root.running[processChecked].command
+                    textFormat: Text.PlainText
+                    wrapMode: Text.WordWrap
+                    elide: Text.ElideRight
+
+                    opacity: 0.7
+                }
+
+                PlasmaComponents.Label {
+                    text: `Pid : ${ root.running[processChecked].pid}`
+
+                    wrapMode: Text.WordWrap
+                    textFormat: Text.PlainText
+                    opacity: 0.7
+                }
+            }
+        }
+
+        Kirigami.Separator {
+            Layout.fillHeight: true
+            visible: root.sidebarVisible
         }
 
         PlasmaComponents.ScrollView {
