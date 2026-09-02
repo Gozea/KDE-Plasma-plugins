@@ -207,6 +207,20 @@ KCM.ScrollViewKCM {
 
         ColumnLayout {
             Kirigami.FormLayout {
+                QQC2.Label {
+                    Layout.fillWidth: true
+
+                    text: ["Command : ",
+                        command.text,
+                        Array.from({length: fieldsModel.count}, (_, i) => fieldsModel.get(i)).map((entry) => {return `${entry.key} ${entry.value}`}).join(" ")
+                    ].join(" ")
+
+                    textFormat: Text.PlainText
+                    wrapMode: Text.WordWrap
+                    elide: Text.ElideRight
+                    opacity: 0.7
+                }
+
                 QQC2.TextField {
                     id: commandTitle
 
