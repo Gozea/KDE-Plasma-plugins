@@ -69,7 +69,7 @@ Item {
                             display: PlasmaComponents.AbstractButton.IconOnly
                             text: "Stop a Process"
 
-                            onClicked: root.executable.stop(modelData.title)
+                            onClicked: root.executable.killPid(modelData.pid)
 
                             PlasmaComponents.ToolTip.text: text
                             PlasmaComponents.ToolTip.visible: hovered
