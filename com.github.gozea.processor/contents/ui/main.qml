@@ -57,7 +57,7 @@ PlasmoidItem {
         engine: "executable"
         interval: 0
         onNewData: function(sourceName, data) {
-            console.log(data["stdout"])
+            console.log("stdout : ", data["stdout"])
             console.log(
                 "stderr:",
                 data["stderr"]
@@ -90,13 +90,14 @@ PlasmoidItem {
             }
             //TODO remove running that ended by themselves (exit code 0 or 1)
             
-            disconnectSource(sourceName);
+            //disconnectSource(sourceName);
         }
 
         function start(command, title) {
             // lauches process in background and write its stdout and stderr in /tmp -> write the pid in stdout in the meanwhile (& is important ; $! means most recent pid)
             connectSource(
-                `${command} > /tmp/$(($$+1)) 2>&1 & sleep 0.1 && kill -0 $! && echo "$!;${title};${command}" && exit 10`
+                //`${command} > /tmp/$(($$+1)) 2>&1 & sleep 0.1 && (kill -0 $! && echo "$!;${title};${command}" && exit 10) || (cat /tmp/$! >&2 && exit 1)`
+                `${command} && exit 10`
             )
         }
 
