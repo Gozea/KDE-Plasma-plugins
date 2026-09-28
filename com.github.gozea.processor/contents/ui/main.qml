@@ -91,7 +91,7 @@ PlasmoidItem {
             }
             //TODO remove running that ended by themselves (exit code 0 or 1)
             
-            if (data["exit code"] === 0 || data["exit code"] === 1) {
+            if (data["exit code"] === 0 || data["exit code"] === 1 || data["exit code"] === 23) {
                 disconnectSource(sourceName);
             }
         }
@@ -109,7 +109,7 @@ PlasmoidItem {
             // exec actual command
             connectSource(
                 //`${command} > /tmp/$(($$+1)) 2>&1 & sleep 0.1 && (kill -0 $! && echo "$!;${title};${command}" && exit 10) || (cat /tmp/$! >&2 && exit 1)`
-                `echo $$ > /tmp/${id} && ${command} 2>&1 >> /tmp/${id} && echo "${id}"`
+                `echo $$ > /tmp/${id} && exec ${command} >> /tmp/${id} 2>&1 && echo "${id}"`
             )
         }
 
