@@ -109,7 +109,7 @@ PlasmoidItem {
             // exec actual command
             connectSource(
                 //`${command} > /tmp/$(($$+1)) 2>&1 & sleep 0.1 && (kill -0 $! && echo "$!;${title};${command}" && exit 10) || (cat /tmp/$! >&2 && exit 1)`
-                `echo $$ > /tmp/${id} && exec ${command} >> /tmp/${id} 2>&1 && echo "${id}"`
+                `echo $$ > /tmp/${id} && echo "${id}" && exec ${command} >> /tmp/${id} 2>&1`
             )
         }
 
