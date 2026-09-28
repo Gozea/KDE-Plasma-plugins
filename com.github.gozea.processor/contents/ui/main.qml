@@ -109,7 +109,7 @@ PlasmoidItem {
             // exec actual command
             connectSource(
                 //`${command} > /tmp/$(($$+1)) 2>&1 & sleep 0.1 && (kill -0 $! && echo "$!;${title};${command}" && exit 10) || (cat /tmp/$! >&2 && exit 1)`
-                `echo $$ > /tmp/${id} && ${command} 2>&1 | tee -a /tmp/${id}`
+                `echo $$ > /tmp/${id} && ${command} 2>&1 >> /tmp/${id} && echo "${id}"`
             )
         }
 
@@ -133,7 +133,7 @@ PlasmoidItem {
         }
 
         function sendNotification(title, subtitle, icon) {
-            executable.connectSource(`notify-send --icon ${icon} "${title}" "${subtitle}"`)
+            executable.connectSource(`notify-send --icon ${icon} "${title}" "${subtitle}" && exit 23`)
         }
 
     }
