@@ -68,21 +68,27 @@ PlasmoidItem {
             )
 
             //add running process if persists
-            if (data["exit code"] === 10) {
-                console.log("success")
-                var stdout = data["stdout"].split(";")
-                var newProcess = {
-                    "pid": stdout[0],
-                    "title": stdout[1],
-                    "command": stdout[2]
-                }
-                sendNotification(stdout[1], stdout[2], "dialog-ok.svg")
-                root.running = root.running.concat([newProcess])
-            }
+            //if (data["exit code"] === 10) {
+            //    console.log("success")
+            //    var stdout = data["stdout"].split(";")
+            //    var newProcess = {
+            //        "pid": stdout[0],
+            //        "title": stdout[1],
+            //        "command": stdout[2]
+            //    }
+            //    sendNotification(stdout[1], stdout[2], "dialog-ok.svg")
+            //    root.running = root.running.concat([newProcess])
+            //}
 
             // error
             if (data["exit code"] === 1) {
                 sendNotification("Process didn't persist or failed", data["stderr"], "dialog-warning.svg")
+            }
+
+            // suppress from processes list if exit
+            if (data["exit code"] === 0 || data["exit code"] === 1) {
+                const id = data["stdout"]
+                root.running = root.running.filter(entry => entry["id"] != id)
             }
 
             // if readStd successful
@@ -91,7 +97,7 @@ PlasmoidItem {
             }
             //TODO remove running that ended by themselves (exit code 0 or 1)
             
-            if (data["exit code"] === 0 || data["exit code"] === 1 || data["exit code"] === 23) {
+            if (data["exit code"]) {
                 disconnectSource(sourceName);
             }
         }
@@ -100,7 +106,7 @@ PlasmoidItem {
             // lauches process in background and write its stdout and stderr in /tmp -> write the pid in stdout in the meanwhile (& is important ; $! means most recent pid)
             var id = Date.now()
             var newProcess = {
-                "pid": id,
+                "id": id,
                 "title": title,
                 "command": command
             }
@@ -114,22 +120,22 @@ PlasmoidItem {
         }
 
         function stop(title) {
-            var titlePids = root.running.filter(entry => entry["title"] === title).map(entry => entry["pid"])
+            var titleIds = root.running.filter(entry => entry["title"] === title).map(entry => entry["id"])
             executable.connectSource(
-                `kill ${titlePids.join(" ")}`
+                `echo ${titleIds.join(" ")} | tr ' ' '\n' | xargs -I{} head -n1 /tmp/{} | xargs kill`
             )
             //update running processes list
             root.running = root.running.filter(entry => entry["title"] !== title)
         }
 
-        function killPid(pid) {
-            executable.connectSource(`kill ${pid}`)
+        function killPid(id) {
+            executable.connectSource(`kill $(head -n1 "/tmp/${id}")`)
             //update running processes list
-            root.running = root.running.filter(entry => entry["pid"] !== pid)
+            root.running = root.running.filter(entry => entry["id"] !== id)
         }
 
-        function readStd(pid) {
-            executable.connectSource(`cat /tmp/${pid} && exit 20`)
+        function readStd(id) {
+            executable.connectSource(`cat /tmp/${id} && exit 20`)
         }
 
         function sendNotification(title, subtitle, icon) {

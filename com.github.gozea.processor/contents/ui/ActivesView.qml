@@ -69,7 +69,7 @@ Item {
                             display: PlasmaComponents.AbstractButton.IconOnly
                             text: "Stop a Process"
 
-                            onClicked: root.executable.killPid(modelData.pid)
+                            onClicked: root.executable.killPid(modelData.id)
 
                             PlasmaComponents.ToolTip.text: text
                             PlasmaComponents.ToolTip.visible: hovered
@@ -105,7 +105,7 @@ Item {
 
             function onProcessCheckedChanged() {
                 if (processChecked !== -1) {
-                    root.executable.readStd(root.running[processChecked].pid)
+                    root.executable.readStd(root.running[processChecked].id)
                 }
             }
         }
@@ -117,7 +117,7 @@ Item {
             repeat: true
 
             onTriggered: {
-                root.executable.readStd(root.running[processChecked].pid)
+                root.executable.readStd(root.running[processChecked].id)
             }
         }
 
@@ -160,7 +160,7 @@ Item {
                 }
 
                 PlasmaComponents.Label {
-                    text: `Pid : ${ root.running[processChecked].pid}`
+                    text: `Pid : ${ root.running[processChecked].id}`
 
                     wrapMode: Text.WordWrap
                     textFormat: Text.PlainText
