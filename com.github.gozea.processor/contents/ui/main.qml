@@ -69,6 +69,7 @@ PlasmoidItem {
 
             //add running process if persists
             if (data["exit code"] === 10) {
+                console.log("success")
                 var stdout = data["stdout"].split(";")
                 var newProcess = {
                     "pid": stdout[0],
@@ -90,14 +91,25 @@ PlasmoidItem {
             }
             //TODO remove running that ended by themselves (exit code 0 or 1)
             
-            //disconnectSource(sourceName);
+            if (data["exit code"] === 0 || data["exit code"] === 1) {
+                disconnectSource(sourceName);
+            }
         }
 
         function start(command, title) {
             // lauches process in background and write its stdout and stderr in /tmp -> write the pid in stdout in the meanwhile (& is important ; $! means most recent pid)
+            var id = Date.now()
+            var newProcess = {
+                "pid": id,
+                "title": title,
+                "command": command
+            }
+            sendNotification(title, command, "dialog-ok.svg")
+            root.running = root.running.concat([newProcess])
+            // exec actual command
             connectSource(
                 //`${command} > /tmp/$(($$+1)) 2>&1 & sleep 0.1 && (kill -0 $! && echo "$!;${title};${command}" && exit 10) || (cat /tmp/$! >&2 && exit 1)`
-                `${command} && exit 10`
+                `echo $$ > /tmp/${id} && ${command} 2>&1 | tee -a /tmp/${id}`
             )
         }
 
